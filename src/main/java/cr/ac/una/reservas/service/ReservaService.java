@@ -96,7 +96,7 @@ public class ReservaService {
                 continue;
             }
             
-            boolean haySuperposicion = nueva.getHoraInicio() < existente.getHoraFinal();
+            boolean haySuperposicion = nueva.getHoraInicio() < existente.getHoraFinal() && nueva.getHoraFinal() > existente.getHoraInicio();
             
             if(haySuperposicion){
             
