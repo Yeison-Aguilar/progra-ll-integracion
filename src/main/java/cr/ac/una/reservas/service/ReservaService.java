@@ -7,6 +7,7 @@ import cr.ac.una.reservas.exception.ReservaInvalidaException;
 import cr.ac.una.reservas.model.Reserva;
 import cr.ac.una.reservas.observer.ReservaObserver;
 import cr.ac.una.reservas.strategy.ValidadorReserva;
+import cr.ac.una.reservas.model.EstadoReserva;
 
 public class ReservaService {
 
@@ -78,6 +79,32 @@ public class ReservaService {
          * reservas superpuestas para el mismo
          * laboratorio y fecha.
          */
+        
+        for(Reserva existente : reservas){
+            
+            if(!existente.getLaboratorio().equalsIgnoreCase(nueva.getLaboratorio())){
+            
+                continue;
+            }
+            if(!existente.getFecha().equals(nueva.getFecha())){
+            
+                continue;
+            }
+            
+            if(existente.getEstado() == EstadoReserva.CANCELADA){
+            
+                continue;
+            }
+            
+            boolean haySuperposicion = nueva.getHoraInicio() < existente.getHoraFinal();
+            
+            if(haySuperposicion){
+            
+                throw new ReservaInvalidaException("El laboratorio ya tiene " + "una reserva en ese horario");
+            }
+        }
+        
+        
     }
 
     private void notificarRegistro(
