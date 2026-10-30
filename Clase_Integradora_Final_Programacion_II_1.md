@@ -1219,25 +1219,32 @@ prueba
 Cualquier integrante deberá poder responder:
 
 ```text
-¿Por qué Strategy es útil?
+**1. ¿Por qué Strategy es útil?**
+Porque cada regla de validación vive en su propia clase. `ReservaService` solo recorre la lista de validadores y no mezcla todas las reglas en un solo método largo.
 
-¿Qué tendría que cambiar para agregar
-otra validación?
+**2. ¿Qué tendría que cambiar para agregar otra validación?**
+Crear una clase nueva que implemente `ValidadorReserva` y registrarla con `agregarValidador(...)`. No se modifica el código interno de `ReservaService`. Así lo hice con `ValidacionHorario`, que comprueba que las reservas estén entre las 7:00 y las 21:00.
 
-¿Qué problema evita Observer?
+**3. ¿Qué problema evita Observer?**
+Evita que `ReservaService` quede acoplado a la forma de notificar. Si el servicio imprimiera directamente, cada notificación nueva obligaría a modificarlo. En nuestro proyecto tenemos dos observers: `ConsolaObserver` y `ResumenObserver`.
 
-¿Dónde se lanza ReservaInvalidaException?
+**4. ¿Dónde se lanza `ReservaInvalidaException`?**
+En los validadores (`ValidacionBasica`, `ValidacionCapacidad`, `ValidacionHorario`) y en `ReservaService` (código duplicado y superposición). `App` la captura y muestra el mensaje.
 
-¿Cómo se comprobó la superposición?
+**5. ¿Cómo se comprobó la superposición?**
+Con una sola condición en `validarSuperposicion()`: mismo laboratorio, misma fecha, y que el inicio de la nueva sea menor que el final de la existente y el final de la nueva sea mayor que el inicio de la existente. Con eso, las reservas consecutivas (8-10 y 10-12) son válidas porque una termina justo cuando empieza la otra.
 
-¿Qué prueba demuestra que la regla funciona?
+**6. ¿Qué prueba demuestra que la regla funciona?**
+`debeRechazarReservasSuperpuestas`: registra una reserva válida, intenta una segunda en el mismo laboratorio, fecha y horario superpuesto, comprueba que se lanza `ReservaInvalidaException` y que solo quedó una reserva registrada.
 
-¿Qué error se encontró con el depurador?
+**7. ¿Qué error se encontró con el depurador?**
+En `ValidacionBasica.validar()` la condición del horario estaba invertida: rechazaba cuando `horaInicio < horaFinal`, o sea, justo las reservas válidas. Con el breakpoint se vio que con 8 y 10 la condición daba `true` y lanzaba la excepción. Se corrigió a `horaInicio >= horaFinal`.
 
-¿Por qué ReservaService no imprime
-directamente todas las notificaciones?
+**8. ¿Por qué `ReservaService` no imprime directamente las notificaciones?**
+Porque quedaría atado a la consola. Con Observer solo avisa que se registró una reserva y los observers deciden qué hacer. En mi parte implementé `ResumenObserver`, que muestra el laboratorio, la fecha, el horario y la cantidad de reservas registradas.
 
-¿Qué cambiaría si existiera una base de datos?
+**9. ¿Qué cambiaría si existiera una base de datos?**
+Se agregaría una capa DAO (por ejemplo `ReservaDAO`) y `ReservaService` le pediría guardar y consultar en vez de usar la lista en memoria. Los validadores y observers seguirían igual.
 ```
 
 ---
